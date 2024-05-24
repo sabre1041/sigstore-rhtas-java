@@ -1,7 +1,9 @@
 
 properties([
     parameters([
+        string(defaultValue: 'quay.io/ablock/nonroot-jenkins-agent-maven:latest', description: 'Agent Image', name: 'AGENT_IMAGE'),
         string(description: 'Cluster Apps Domain', name: 'APPS_DOMAIN'),
+        string(description: 'OIDC Issuer', name: 'OIDC_ISSUER'),
         string(defaultValue: 'trusted-artifact-signer', description: 'Client ID', name: 'CLIENT_ID'),
         string(defaultValue: 'trusted-artifact-signer', description: 'Keycloak Realm', name: 'KEYCLOAK_REALM'),
         string(defaultValue: '', description: 'Image Destination', name: 'IMAGE_DESTINATION'),
@@ -16,8 +18,8 @@ podTemplate([
     containers: [
         containerTemplate(
             name: 'jnlp',
-            image: "quay.io/ablock/nonroot-jenkins-agent-maven:latest",
-            alwaysPullImage: true,
+            image: "${params.AGENT_IMAGE}",
+            alwaysPullImage: false,
             args: '${computer.jnlpmac} ${computer.name}'
         )
     ],
@@ -34,13 +36,13 @@ podTemplate([
          env.COSIGN_REKOR_URL="https://rekor-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
          env.COSIGN_MIRROR="https://tuf-trusted-artifact-signer.${params.APPS_DOMAIN}"
          env.COSIGN_ROOT="https://tuf-trusted-artifact-signer.${params.APPS_DOMAIN}/root.json"
-         env.COSIGN_OIDC_ISSUER="https://keycloak.${params.APPS_DOMAIN}/realms/${params.KEYCLOAK_REALM}"
+         env.COSIGN_OIDC_ISSUER="${params.OIDC_ISSUER}"
          env.COSIGN_OIDC_CLIENT_ID="${params.CLIENT_ID}"
-         env.COSIGN_CERTIFICATE_OIDC_ISSUER="https://keycloak.${params.APPS_DOMAIN}/realms/${params.KEYCLOAK_REALM}"
+         env.COSIGN_CERTIFICATE_OIDC_ISSUER="${params.OIDC_ISSUER}"
          env.COSIGN_YES="true"
          env.SIGSTORE_FULCIO_URL="https://fulcio-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
          env.SIGSTORE_OIDC_CLIENT_ID="${params.CLIENT_ID}"
-         env.SIGSTORE_OIDC_ISSUER="https://keycloak.${params.APPS_DOMAIN}/realms/${params.KEYCLOAK_REALM}"
+         env.SIGSTORE_OIDC_ISSUER="${params.OIDC_ISSUER}"
          env.SIGSTORE_REKOR_URL="https://rekor-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
          env.REKOR_REKOR_SERVER="https://rekor-server-trusted-artifact-signer.${params.APPS_DOMAIN}"
          env.COSIGN="bin/cosign"
